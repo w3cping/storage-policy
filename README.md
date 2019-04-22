@@ -143,8 +143,6 @@ e.g.
 "[Introducing Storage Access API](https://webkit.org/blog/8124/introducing-storage-access-api/)"
 
 
-*  Clear Site data API . 
-"[Clear Site Data](https://www.w3.org/TR/clear-site-data/)"
 
 
   
