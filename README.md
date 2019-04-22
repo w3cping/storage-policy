@@ -68,7 +68,9 @@ If a `Storage-Policy` header contains an attribute specifying a **less restricti
 i.e. a higher value for the `inactivity-timeout` or `max-age` attributes, or an `allow-origins` other than `'none'`,
 the user agent MUST alert the user in some way, such as with a permission prompt
 similar to the prompt resulting from a call by a nested browsing context to the `Storage Access` 
-API in webkit's Intelligent Tracking Prevention (ITP) feature.
+API in webkit's Intelligent Tracking Prevention (ITP) feature, i.e. after a call to:
+
+`document.requestStorageAccess();`
 
 If a site determines that a user has already given their consent to storage access, 
 then it may be able to avoid a separate prompt resulting from a less restrictive `Storage-Policy` 
@@ -84,7 +86,7 @@ Storage associated with such a subresource will not be deleted,
 but cookies will not be communicated or set, and any associated nested browsing context will not have access to any storage.
 
 When either of the timers completes all top-level origin storage, other than cookies indicated by a `allow-cookies` list, is deleted.
-This would have the same effect as if the user agent had received a `Clear-Site-Data: ,"cache", "cookies", "storage", "executionContexts"`
+This would have the same effect as if the user agent had received a `Clear-Site-Data: "cache", "cookies", "storage", "executionContexts"`
 in the response to the next HTTP request to the origin after the user has stopped interacting for the `inactivity-timeout` period.
 
 
@@ -137,6 +139,12 @@ e.g.
 *   Safari's ITP 2.1 limits the duration of first-party cookies created by script to a default 7 days duration. 
 "[Intelligent Tracking Prevention 2.1](https://webkit.org/blog/8613/intelligent-tracking-prevention-2-1/)"
 
+*   Safari's version of the Storage Access API document.requestStorageAccess causes a user prompt. 
+"[Introducing Storage Access API](https://webkit.org/blog/8124/introducing-storage-access-api/)"
+
+
+*  Clear Site data API . 
+"Clear Site Data](https://www.w3.org/TR/clear-site-data/)"
 
 
   
