@@ -61,7 +61,7 @@ but also ensures the expiration timer is held off  while the user is interacting
 Sites can limit access to default limits storage by returning a `Storage-Policy` 
 response header of the following form:
 
-`Storage-Policy: max-age 3600;inactivity-timeout 1800;allow-cookies consent preference;allow-origins example.com `
+`Storage-Policy: type all; max-age 3600; inactivity-timeout 1800; allow-cookies consent preference; allow-origins example.com `
 
 The header's value contains a **storage policy descriptor**, 
 consisting of one or more **storage policy attributes** separated by semicolons `;`.
@@ -114,17 +114,36 @@ Script can execute the following JavaScript function to determine the storage du
 var storagePolicyObject = navigator.storagePolicy.Get()
 ```
 
-The returned object would contain the duration currently in effect:
+The returned object would contain the durations currently in effect, the third-party domains
+with access to their own origin storage and cookie names not to be deleted on session timeout:
 ```javascript
 {
-          maxAge: 86400,
-          inactivityTimeout: 3600,
-          allowOrigins: [
-                            "example.com"
-                        ],
-          allowCookies: [
+      [
+          {
+            type: "cookies"
+            maxAge: 3600,
+            inactivityTimeout: 1800,
+            allowOrigins: 
+                            [
+                                "example.com",
+                                "anotherexmple.com"
+                            ],
+            allowCookies: 
+                        [
                             "euconsent"
                         ]
+          },
+          {
+            type: "storage"
+            maxAge: 3600,
+            inactivityTimeout: 1800,
+            allowOrigins: 
+                            [
+                                "example.com",
+                                "anotherexmple.com"
+                            ],
+          }
+      ]
 }
 ```
 ### Change current duration limits
@@ -134,18 +153,35 @@ If there was a `Storage-Policy` header the user agent MUST ignore the call.
 ```
 navigator.storagePolicy.Update(dictionary);
 ```
-where `dictionary` is an object indicating the required duration for specified category types:
+where `dictionary` is an object indicating the required storage limits for specified category types:
 ```javascript
 {
-          maxAge: 3600,
-          inactivityTimeout: 1800,
-          allowOrigins: [
-                            "example.com",
-                            "anotherexmple.com"
-                        ],
-          allowCookies: [
+      [
+          {
+            type: "cookies"
+            maxAge: 3600,
+            inactivityTimeout: 1800,
+            allowOrigins: 
+                            [
+                                "example.com",
+                                "anotherexmple.com"
+                            ],
+            allowCookies: 
+                        [
                             "euconsent"
                         ]
+          },
+          {
+            type: "storage"
+            maxAge: 3600,
+            inactivityTimeout: 1800,
+            allowOrigins: 
+                            [
+                                "example.com",
+                                "anotherexmple.com"
+                            ],
+          }
+      ]
 }
 
 ```
