@@ -120,7 +120,7 @@ with access to their own origin storage and cookie names not to be deleted on se
 {
       [
           {
-            type: "cookies"
+            type: "cookies",
             maxAge: 3600,
             inactivityTimeout: 1800,
             allowOrigins: 
@@ -134,7 +134,7 @@ with access to their own origin storage and cookie names not to be deleted on se
                         ]
           },
           {
-            type: "storage"
+            type: "storage",
             maxAge: 3600,
             inactivityTimeout: 1800,
             allowOrigins: 
@@ -158,7 +158,7 @@ where `dictionary` is an object indicating the required storage limits for speci
 {
       [
           {
-            type: "cookies"
+            type: "cookies",
             maxAge: 3600,
             inactivityTimeout: 1800,
             allowOrigins: 
@@ -172,7 +172,7 @@ where `dictionary` is an object indicating the required storage limits for speci
                         ]
           },
           {
-            type: "storage"
+            type: "storage",
             maxAge: 3600,
             inactivityTimeout: 1800,
             allowOrigins: 
