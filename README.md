@@ -7,20 +7,21 @@ Contributors:
 
 
 ## Introduction
-How applications deploy user agent storage has major privacy implications for privacy, 
+It has long been recognised that user agent storage has major privacy implications for privacy,
 such as the ease with which mechanisms like HTTP cookies, designed to support session state persistence, 
 have been used to enable invisible long term surveillance.
-Although cookies were the first browser based storage to be used to persist state, 
+
+Although cookies were the first browser based storage to be used to track users, 
 and are still the simplest and most available technique, 
 other storage categories such as the client-side cache,
-local and session based named item storage and indexedDB transactional storage are also
-used by client-side script to enable persistent tracking. 
+local and session based named item storage and indexedDB transactional storage have also
+been used by client-side script to enable persistent tracking. 
 HTTP cookies can be regenerated from items in local storage or IndexedDB, 
 and many tracking techniques have been invented that use the browser cache to store or derive unique identifiers
 without the the user's ability to reset or control it.
 
-This has long been recognised by privacy regulators and legislators, 
-and laws have been introduced requiring web sites to manage storage in privacy protective ways, 
+Privacy regulators and legislators have responded to this by introducing 
+laws requiring web sites to manage storage in privacy protective ways, 
 for example by requiring prior and informed user consent before storage items,
 such as cookies or fingerprinting via derived identifiers,
 are used.
@@ -57,11 +58,14 @@ This API not only extends a similar mechanism to all origin controlled storage,
 i.e. all the storage types controlled by the `Clear-Site-Data` API,
 but also ensures the expiration timer is held off  while the user is interacting with the site. 
 
+Any explicit deletion of storage items, by the user agent, 
+script in a browsing context or triggered by a cookie-like expiry, will continue as before i.e. is not affected by changes to the storage policy limits.
+
 ## Storage-Policy response header
 Sites can limit access to default limits storage by returning a `Storage-Policy` 
 response header of the following form:
 
-`Storage-Policy: type all; max-age 3600; inactivity-timeout 1800; allow-cookies consent preference; allow-origins example.com `
+`Storage-Policy: type all; timeout 1800; allow-names _consent low-entropy-preference; allow-origins example.com `
 
 The header's value contains a **storage policy descriptor**, 
 consisting of one or more **storage policy attributes** separated by semicolons `;`.
@@ -71,26 +75,20 @@ Where the **storage policy attributes** have the following meaning
 
 | attribute        | default    | description  |
 | :-------------: |:-------------:| :----- |
-| type  | **all** | The storage type these limits apply to, either **cache**, **cookies**, **storage**, or **all**. |
-| max-age      | 86,400 (24 hours)| Number of seconds after header received before all top-level origin storage is cleared, irrespective of user activity. |
-| inactivity-timeout      | 3600 ( 1 hour)| Number of seconds of no user activity before all top-level origin storage is cleared. The timer is restarted (unless expired) on detection of user activity. |
-| allow-cookies | 'none' |   space separated list of names of cookies that are not to be deleted by this mechanism, or 'none' if all cookies are to be deleted.|
-| allow-origins | 'none' |   space separated list of origins that can receive and place cookies, and whose browsing contexts can access other storage, or 'none' if no subresource may access storage. |
+| type  | all | The storage type these limits apply to, either **cache**, **cookies**, **storage**, or **all**. |
+| timeout      | 3600 (=1 hour)| Number of seconds of no user activity before all top-level origin storage is cleared. The timer is restarted (unless expired) on detection of user activity. |
+| allow-names | 'none' |   space separated list of names of cookies, storage items, or IndexDB databases, that are not to be deleted by this mechanism, or 'none' if all cookies are to be deleted.|
+| allow-origins | 'none' |   space separated list of origins that can receive and place cookies, and whose browsing contexts can access other storage, or 'none' if no subresource may access storage. The default is only changed if the associated type attribute is `all` or absent. |
 
 Successive `Storage-Policy` headers can specify separate limits for each storage type, 
 or a single header can contain several **storage policy attributes** separated by commas.
 
 If a `Storage-Policy` header contains an attribute specifying a **less restrictive** storage policy than the default, 
-i.e. a higher value for the `inactivity-timeout` or `max-age` attributes, or an `allow-origins` other than `'none'`,
-the user agent MUST alert the user in some way, such as with a permission prompt
-similar to the prompt resulting from a call by a nested browsing context to the `Storage Access` 
-API in webkit's Intelligent Tracking Prevention (ITP) feature, i.e. after a call to:
-
-`document.requestStorageAccess();`
-
-If a site determines that a user has already given their consent to storage access, 
-then it may be able to avoid a separate prompt resulting from a less restrictive `Storage-Policy` 
-by using an API to set a verifiable and universal consent signal, such as `DNT` or its replacement.
+i.e. a higher value for the `timeout`  attribute, or an `allow-origins` or `allow-names` list other than `'none'`,
+the user agent must alert the user in some way, such as with a permission prompt
+similar to the prompt resulting from a call by a nested browsing context to the Storage Access 
+API's `document.requestStorageAccess` function. 
+If the user declines the prompt user agents must refrain from prompting the user again within at least 24 hours.
 
 If a top level browsing context has a `Storage-Policy` header in its initiating response
 then subresources (other than those indicated by an `allow-origins` attribute),
@@ -98,11 +96,11 @@ will have any `Set-Cookie` headers in the response ignored,
 any request to the origin will not include any `Cookies` headers, and any resulting
 browsing context will have no access to terminal storage. 
 
-Storage associated with such a subresource will not be deleted, 
+Existing storage associated with such a subresource will not be deleted, as it would be for the top-level origin,
 but cookies will not be communicated or set, and any associated nested browsing context will not have access to any storage.
 
-When either of the timers completes all top-level origin storage, other than cookies indicated by a `allow-cookies` list, is deleted.
-This would have the same effect as if the user agent had received a `Clear-Site-Data: "cache", "cookies", "storage", "executionContexts"`
+When the inactivity timers complete the associated top-level origin storage, other than cookies, items or databases indicated by a `allow-names` list, is deleted.
+In the default case, where the `type all` attribute is assumed, this would have the same effect as if the user agent had received a `Clear-Site-Data: "cache", "cookies", "storage", "executionContexts"`
 in the response to the next HTTP request to the origin after the user has stopped interacting for the `inactivity-timeout` period.
 
 
@@ -128,7 +126,7 @@ with access to their own origin storage and cookie names not to be deleted on se
                                 "example.com",
                                 "anotherexmple.com"
                             ],
-            allowCookies: 
+            allowNames: 
                         [
                             "euconsent"
                         ]
@@ -166,7 +164,7 @@ where `dictionary` is an object indicating the required storage limits for speci
                                 "example.com",
                                 "anotherexmple.com"
                             ],
-            allowCookies: 
+            allowNames: 
                         [
                             "euconsent"
                         ]
